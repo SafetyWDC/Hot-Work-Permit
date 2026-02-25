@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hot Work Permit</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f3f4f6; color: #1f2937; }
+    #formView { display: block; }
+    #previewView { display: none; }
+    .page { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; }
+    .page-title { text-align: center; margin-bottom: 32px; }
+    .page-title h1 { font-size: 28px; font-weight: 800; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .page-title p { color: #6b7280; margin-top: 6px; }
+    .card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .card h2 { font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .step-badge { background: #2563eb; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .alert-yellow { background: #fefce8; border-left: 4px solid #eab308; padding: 14px 16px; border-radius: 0 8px 8px 0; margin-bottom: 20px; color: #854d0e; font-weight: 600; font-size: 14px; }
+    .radio-group { display: flex; gap: 16px; flex-wrap: wrap; }
+    .radio-label { flex: 1; min-width: 160px; border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .2s; font-weight: 500; }
+    .radio-label:hover { border-color: #93c5fd; }
+    .radio-label input[type="radio"] { width: 18px; height: 18px; accent-color: #2563eb; }
+    .radio-label.selected { border-color: #2563eb; background: #eff6ff; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .col-2 { grid-column: span 2; }
+    label.field-label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+    input[type="text"], input[type="date"], input[type="time"], textarea {
+      width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px;
+      font-size: 14px; font-family: inherit; color: #1f2937; outline: none;
+      transition: box-shadow .15s;
+    }
+    input:focus, textarea:focus { box-shadow: 0 0 0 3px rgba(37,99,235,.2); border-color: #2563eb; }
+    textarea { resize: vertical; }
+    .checkbox-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 8px; border-radius: 8px; cursor: pointer; transition: background .15s; }
+    .checkbox-item:hover { background: #f9fafb; }
+    .checkbox-item input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: #2563eb; flex-shrink: 0; }
+    .checkbox-item .cb-title { font-weight: 600; font-size: 14px; color: #1f2937; }
+    .checkbox-item .cb-sub { font-size: 13px; color: #6b7280; margin-top: 2px; }
+    .generate-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 16px; border: none; border-radius: 12px;
+      background: #2563eb; color: white; font-size: 17px; font-weight: 700;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,.35); transition: background .2s;
+    }
+    .generate-btn:hover { background: #1d4ed8; }
+    .preview-page { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+    .action-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
+    .btn-back { background: #f3f4f6; color: #4b5563; }
+    .btn-back:hover { background: #e5e7eb; }
+    .btn-copy { background: #eff6ff; color: #1d4ed8; }
+    .btn-copy:hover { background: #dbeafe; }
+    .btn-pdf { background: #16a34a; color: white; box-shadow: 0 2px 8px rgba(22,163,74,.3); }
+    .btn-pdf:hover { background: #15803d; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .report-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 32px 40px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .report-header { text-align: center; border-bottom: 2px solid #1f2937; padding-bottom: 16px; margin-bottom: 24px; }
+    .report-header h1 { font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+    .report-header p { color: #6b7280; margin-top: 6px; font-size: 15px; }
+    .report-header span { color: #1f2937; font-weight: 600; }
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .info-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; }
+    .info-box .lbl { font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 600; margin-bottom: 4px; }
+    .info-box .val { font-size: 16px; font-weight: 600; color: #1f2937; }
+    .desc-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; }
+    .desc-box .lbl { font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 600; margin-bottom: 6px; }
+    .desc-box p { font-weight: 500; color: #1f2937; }
+    .notice-box { background: #fefce8; border-left: 4px solid #eab308; padding: 12px 16px; margin-bottom: 24px; border-radius: 0 8px 8px 0; }
+    .notice-box p { color: #854d0e; font-weight: 600; font-size: 14px; }
+    .section-title { font-size: 18px; font-weight: 700; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px; }
+    .checklist { list-style: none; margin-bottom: 24px; }
+    .checklist li { display: flex; align-items: center; gap: 12px; padding: 8px 0; font-size: 14px; }
+    .check-box { width: 22px; height: 22px; border-radius: 4px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .check-box.checked { background: #1f2937; border-color: #1f2937; color: white; }
+    .check-box svg { display: none; }
+    .check-box.checked svg { display: block; }
+    .time-row { display: flex; align-items: center; gap: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; }
+    .time-row span:first-child { font-weight: 600; font-size: 14px; }
+    .time-row span:last-child { font-size: 16px; text-decoration: underline; text-decoration-color: #d1d5db; text-underline-offset: 4px; }
+    .toast { position: fixed; top: 20px; right: 20px; background: #1f2937; color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 999; display: none; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+    .toast.show { display: flex; }
+    @media (max-width: 500px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .col-2 { grid-column: span 1; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .report-card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="formView">
+  <div class="page">
+    <div class="page-title">
+      <h1>
+        <svg width="30" height="30" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Hot Work Permit
+      </h1>
+      <p>Fill out the smart form before starting work.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="step-badge">1</span> Location Selection</h2>
+      <p style="font-size:14px;color:#6b7280;margin-bottom:12px;">Which site is this permit for?</p>
+      <div class="radio-group">
+        <label class="radio-label" id="loc1Label">
+          <input type="radio" name="location" value="1475 Mt Fee Rd" onchange="updateRadio()" /> 1475 Mt Fee Rd
+        </label>
+        <label class="radio-label" id="loc2Label">
+          <input type="radio" name="location" value="1600 Mt Fee Rd" onchange="updateRadio()" /> 1600 Mt Fee Rd
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step-badge">2</span> General Info</h2>
+      <div class="alert-yellow">â¨ Note: No Hot Work after 2:30 PM unless approved by WDC.</div>
+      <div class="form-grid">
+        <div>
+          <label class="field-label">Company</label>
+          <input type="text" id="company" placeholder="Your company name" />
+        </div>
+        <div>
+          <label class="field-label">Name</label>
+          <input type="text" id="name" placeholder="Your full name" />
+        </div>
+        <div class="col-2">
+          <label class="field-label">Date</label>
+          <input type="date" id="date" />
+        </div>
+        <div class="col-2">
+          <label class="field-label">Job Description</label>
+          <textarea id="jobDescription" rows="2" placeholder="What kind of hot work are you doing?"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step-badge">3</span> Safety Checklist</h2>
+      <label class="checkbox-item">
+        <input type="checkbox" id="precautions" />
+        <div><div class="cb-title">Sprinklers and Extinguishers</div><div class="cb-sub">Available and equipment is in good condition.</div></div>
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="equipment" />
+        <div><div class="cb-title">Equipment Condition</div><div class="cb-sub">All tools and gear checked and safe to use.</div></div>
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="areaPrep" />
+        <div><div class="cb-title">Area Prep (20ft)</div><div class="cb-sub">Flammable liquids, sawdust, and oil are removed.</div></div>
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="surfaces" />
+        <div><div class="cb-title">Surfaces &amp; Openings</div><div class="cb-sub">Welding pads/blankets used, wall and floor openings covered.</div></div>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2><span class="step-badge">4</span> Monitoring &amp; PPE</h2>
+      <label class="checkbox-item">
+        <input type="checkbox" id="fireWatch" />
+        <div><div class="cb-title">Fire Watch</div><div class="cb-sub">Monitored during work and for 2 hours after completion.</div></div>
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="ppe" />
+        <div><div class="cb-title">PPE</div><div class="cb-sub">Proper Personal Protective Equipment selected and worn.</div></div>
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="ventilation" />
+        <div><div class="cb-title">Ventilation</div><div class="cb-sub">Adequate ventilation is set up.</div></div>
+      </label>
+      <div style="border-top:1px solid #e5e7eb;margin-top:16px;padding-top:16px;">
+        <label class="field-label">Time completed by</label>
+        <input type="time" id="timeCompleted" style="max-width:200px;" />
+      </div>
+    </div>
+
+    <div style="padding: 8px 0 24px;">
+      <button class="generate-btn" onclick="showPreview()">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Generate Preview
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div id="previewView">
+  <div class="preview-page">
+    <div class="action-bar">
+      <button class="btn btn-back" onclick="showForm()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Edit
+      </button>
+      <div class="btn-group">
+        <button class="btn btn-copy" onclick="handleCopy()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+        <button class="btn btn-pdf" onclick="handleDownloadPDF()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </button>
+      </div>
+    </div>
+
+    <div class="report-card" id="reportContent">
+      <div class="report-header">
+        <h1>Hot Work Permit</h1>
+        <p>Location: <span id="pLocation">&#212;</span></p>
+      </div>
+      <div class="info-grid">
+        <div class="info-box"><div class="lbl">Company</div><div class="val" id="pCompany">&#8212;</div></div>
+        <div class="info-box"><div class="lbl">Name</div><div class="val" id="pName">&#8212;</div></div>
+        <div class="info-box"><div class="lbl">Date</div><div class="val" id="pDate">&#8212;</div></div>
+      </div>
+      <div class="desc-box"><div class="lbl">Job Description</div><p id="pJobDescription">&#8212;</p></div>
+      <div class="notice-box"><p>Notice: No Hot Work after 2:30 PM unless approved by WDC.</p></div>
+      <div>
+        <div class="section-title">Safety Checklist</div>
+        <ul class="checklist">
+          <li><div class="check-box" id="cb-precautions"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Sprinklers, extinguishers, and equipment ready.</li>
+          <li><div class="check-box" id="cb-equipment"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Equipment is in good condition.</li>
+          <li><div class="check-box" id="cb-areaPrep"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Area prep: 20ft clear of flammable liquids, sawdust, oil.</li>
+          <li><div class="check-box" id="cb-surfaces"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Surfaces: Welding pads/blankets used, wall/floor openings covered.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="section-title">Monitoring &amp; PPE </div>
+        <ul class="checklist">
+          <li><div class="check-box" id="cb-fireWatch"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Fire Watch monitored during work and for 2 hours after.</li>
+          <li><div class="check-box" id="cb-ppe"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Proper PPE selected and worn.</li>
+          <li><div class="check-box" id="cb-ventilation"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Proper ventilation confirmed.</li>
+        </ul>
+        <div class="time-row"><span>Time completed by:</span><span id="pTimeCompleted">________________</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg width="16" height="16" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  function updateRadio() {
+    document.querySelectorAll('.radio-label').forEach(label => {
+      const input = label.querySelector('input[type="radio"]');
+      label.classList.toggle('selected', input.checked);
+    });
+  }
+  function showMessage(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+  function getVal(id) { return document.getElementById(id)?.value?.trim() || ''; }
+  function isChecked(id) { return document.getElementById(id)?.checked || false; }
+  function setCheck(cbId, checked) {
+    const el = document.getElementById('cb-' + cbId);
+    if (el) el.classList.toggle('checked', checked);
+  }
+  function showPreview() {
+    const locEl = document.querySelector('input[name="location"]:checked');
+    document.getElementById('pLocation').textContent  = locEl ? locEl.value : 'Not selected';
+    document.getElementById('pCompany').textContent   = getVal('company') || 'â';
+    document.getElementById('pName').textContent      = getVal('name') || 'â';
+    document.getElementById('pDate').textContent      = getVal('date') || 'â';
+    document.getElementById('pJobDescription').textContent = getVal('jobDescription') || 'â';
+    document.getElementById('pTimeCompleted').textContent  = getVal('timeCompleted') || '_______________';
+    ['precautions','equipment','areaPrep','surfaces','fireWatch','ppe','ventilation'].forEach(id => {
+      setCheck(id, isChecked(id));
+    });
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('previewView').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+  function showForm() {
+    document.getElementById('previewView').style.display = 'none';
+    document.getElementById('formView').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+  function handleCopy() {
+    const locEl = document.querySelector('input[name="location"]:checked');
+    const text = `HOT WORK PERMIT REPORT
+------------------------
+LOCATION: ${locEl ? locEl.value : 'Not selected'}
+
+GENERAL INFO
+Company: ${getVal('company') || 'N/A'}
+Name: ${getVal('name') || 'N/A'}
+Date: ${getVal('date') || 'N/A'}
+Job Description: ${getVal('jobDescription') || 'N/A'}
+
+SAFETY CHECKLIST
+[${isChecked('precautions')?'X':' '}] Sprinklers/extinguishers ready
+[${'isChecked('equipment')?'X':' '}] Equipment in good condition
+[p${isChecked('areaPrep')?'X':' '}] Area prep (20ft flammables removed)
+[p${isChecked('surfaces')?'X':' '}] Welding pads/blankets used
+
+MONITORING & PPE
+[${isChecked('fireWatch')?'X':' '}] Fire watch during and 2 hrs after
+[${'isChecked('ppe')?'X':' '}] Proper PPE used
+[${isChecked('ventilation')?'X':' '}] Good ventilation
+Time completed by: ${getVal('timeCompleted') || 'N/A'}`;
+    navigator.clipboard.writeText(text)
+      .then(() => showMessage('Report copied to clipboard!'))
+      .catch(() => showMessage('Could not copy. Try again.'));
+  }
+  function handleDownloadPDF() {
+    if (typeof html2pdf === 'undefined') {
+      showMessage('PDF library still loading, try again in a moment.');
+      return;
+    }
+    const element = document.getElementById('reportContent');
+    const dateVal = getVal('date');
+    const filename = 'hot-work-permit' + (dateVal ? '-' + dateVal : '') + '.pdf';
+    showMessage('Generating PDF...');
+    html2pdf().set({
+      margin: 12,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(element).save();
+  }
+</script>
+</body>
+</html>
