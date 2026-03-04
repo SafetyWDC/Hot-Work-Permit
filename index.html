@@ -56,14 +56,17 @@
     .btn-pdf:hover { background: #15803d; }
     .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
     .report-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 32px 40px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-    .report-header { text-align: center; border-bottom: 2px solid #1f2937; padding-bottom: 16px; margin-bottom: 24px; }
-    .report-header h1 { font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-    .report-header p { color: #6b7280; margin-top: 6px; font-size: 15px; }
+    .report-header { border-bottom: 2px solid #1f2937; padding-bottom: 16px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .report-header-text { }
+    .report-header h1 { font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+    .report-header p { color: #6b7280; margin-top: 4px; font-size: 14px; }
     .report-header span { color: #1f2937; font-weight: 600; }
+    .report-logo { height: 56px; flex-shrink: 0; }
     .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .info-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
     .info-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; }
     .info-box .lbl { font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 600; margin-bottom: 4px; }
-    .info-box .val { font-size: 16px; font-weight: 600; color: #1f2937; }
+    .info-box .val { font-size: 15px; font-weight: 600; color: #1f2937; }
     .desc-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; }
     .desc-box .lbl { font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 600; margin-bottom: 6px; }
     .desc-box p { font-weight: 500; color: #1f2937; }
@@ -76,16 +79,27 @@
     .check-box.checked { background: #1f2937; border-color: #1f2937; color: white; }
     .check-box svg { display: none; }
     .check-box.checked svg { display: block; }
-    .time-row { display: flex; align-items: center; gap: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; }
+    .time-row { display: flex; align-items: center; gap: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; }
     .time-row span:first-child { font-weight: 600; font-size: 14px; }
     .time-row span:last-child { font-size: 16px; text-decoration: underline; text-decoration-color: #d1d5db; text-underline-offset: 4px; }
+    /* Signature section */
+    .signature-section { border-top: 2px solid #1f2937; padding-top: 24px; margin-top: 8px; }
+    .signature-section .section-title { margin-bottom: 20px; }
+    .signature-row { display: flex; align-items: flex-end; gap: 32px; margin-bottom: 20px; }
+    .sig-field { flex: 2; }
+    .sig-date-field { flex: 1; }
+    .sig-label { font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+    .sig-line { border-bottom: 2px solid #374151; height: 36px; }
     .toast { position: fixed; top: 20px; right: 20px; background: #1f2937; color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 999; display: none; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.2); }
     .toast.show { display: flex; }
     @media (max-width: 500px) {
       .form-grid { grid-template-columns: 1fr; }
       .col-2 { grid-column: span 1; }
       .info-grid { grid-template-columns: 1fr 1fr; }
+      .info-grid-2 { grid-template-columns: 1fr; }
       .report-card { padding: 20px; }
+      .report-header { flex-direction: column; align-items: flex-start; }
+      .signature-row { flex-direction: column; gap: 16px; }
     }
   </style>
 </head>
@@ -116,7 +130,7 @@
 
     <div class="card">
       <h2><span class="step-badge">2</span> General Info</h2>
-      <div class="alert-yellow">â¨ Note: No Hot Work after 2:30 PM unless approved by WDC.</div>
+      <div class="alert-yellow">⚠️ Note: No Hot Work after 2:30 PM unless approved by WDC.</div>
       <div class="form-grid">
         <div>
           <label class="field-label">Company</label>
@@ -126,9 +140,13 @@
           <label class="field-label">Name</label>
           <input type="text" id="name" placeholder="Your full name" />
         </div>
-        <div class="col-2">
-          <label class="field-label">Date</label>
-          <input type="date" id="date" />
+        <div>
+          <label class="field-label">Valid From</label>
+          <input type="date" id="dateFrom" />
+        </div>
+        <div>
+          <label class="field-label">Valid To</label>
+          <input type="date" id="dateTo" />
         </div>
         <div class="col-2">
           <label class="field-label">Job Description</label>
@@ -207,17 +225,35 @@
     </div>
 
     <div class="report-card" id="reportContent">
+      <!-- HEADER with logo -->
       <div class="report-header">
-        <h1>Hot Work Permit</h1>
-        <p>Location: <span id="pLocation">&#212;</span></p>
+        <div class="report-header-text">
+          <h1>Hot Work Permit</h1>
+          <p>Location: <span id="pLocation">—</span></p>
+        </div>
+        <img
+          class="report-logo"
+          src="https://whistler2020.ca/wp-content/uploads/2021/05/WDC-logo.png"
+          alt="Whistler 2020 Development Corporation"
+          onerror="this.style.display='none'"
+        />
       </div>
+
+      <!-- General info -->
       <div class="info-grid">
-        <div class="info-box"><div class="lbl">Company</div><div class="val" id="pCompany">&#8212;</div></div>
-        <div class="info-box"><div class="lbl">Name</div><div class="val" id="pName">&#8212;</div></div>
-        <div class="info-box"><div class="lbl">Date</div><div class="val" id="pDate">&#8212;</div></div>
+        <div class="info-box"><div class="lbl">Company</div><div class="val" id="pCompany">—</div></div>
+        <div class="info-box"><div class="lbl">Name</div><div class="val" id="pName">—</div></div>
+        <div class="info-box" style="grid-column: span 1;"></div>
       </div>
-      <div class="desc-box"><div class="lbl">Job Description</div><p id="pJobDescription">&#8212;</p></div>
-      <div class="notice-box"><p>Notice: No Hot Work after 2:30 PM unless approved by WDC.</p></div>
+      <div class="info-grid-2">
+        <div class="info-box"><div class="lbl">Valid From</div><div class="val" id="pDateFrom">—</div></div>
+        <div class="info-box"><div class="lbl">Valid To</div><div class="val" id="pDateTo">—</div></div>
+      </div>
+
+      <div class="desc-box"><div class="lbl">Job Description</div><p id="pJobDescription">—</p></div>
+      <div class="notice-box"><p>⚠️ Notice: No Hot Work after 2:30 PM unless approved by WDC.</p></div>
+
+      <!-- Safety Checklist -->
       <div>
         <div class="section-title">Safety Checklist</div>
         <ul class="checklist">
@@ -227,15 +263,43 @@
           <li><div class="check-box" id="cb-surfaces"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Surfaces: Welding pads/blankets used, wall/floor openings covered.</li>
         </ul>
       </div>
+
+      <!-- Monitoring & PPE -->
       <div>
-        <div class="section-title">Monitoring &amp; PPE </div>
+        <div class="section-title">Monitoring &amp; PPE</div>
         <ul class="checklist">
           <li><div class="check-box" id="cb-fireWatch"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Fire Watch monitored during work and for 2 hours after.</li>
           <li><div class="check-box" id="cb-ppe"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Proper PPE selected and worn.</li>
           <li><div class="check-box" id="cb-ventilation"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Proper ventilation confirmed.</li>
         </ul>
-        <div class="time-row"><span>Time completed by:</span><span id="pTimeCompleted">________________</span></div>
+        <div class="time-row"><span>Time completed by:</span><span id="pTimeCompleted">_______________</span></div>
       </div>
+
+      <!-- Signatures -->
+      <div class="signature-section">
+        <div class="section-title">Signatures</div>
+        <div class="signature-row">
+          <div class="sig-field">
+            <div class="sig-label">Person Requesting Permit</div>
+            <div class="sig-line"></div>
+          </div>
+          <div class="sig-date-field">
+            <div class="sig-label">Date</div>
+            <div class="sig-line"></div>
+          </div>
+        </div>
+        <div class="signature-row">
+          <div class="sig-field">
+            <div class="sig-label">Safety Officer / Supervisor</div>
+            <div class="sig-line"></div>
+          </div>
+          <div class="sig-date-field">
+            <div class="sig-label">Date</div>
+            <div class="sig-line"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -266,11 +330,12 @@
   }
   function showPreview() {
     const locEl = document.querySelector('input[name="location"]:checked');
-    document.getElementById('pLocation').textContent  = locEl ? locEl.value : 'Not selected';
-    document.getElementById('pCompany').textContent   = getVal('company') || 'â';
-    document.getElementById('pName').textContent      = getVal('name') || 'â';
-    document.getElementById('pDate').textContent      = getVal('date') || 'â';
-    document.getElementById('pJobDescription').textContent = getVal('jobDescription') || 'â';
+    document.getElementById('pLocation').textContent      = locEl ? locEl.value : 'Not selected';
+    document.getElementById('pCompany').textContent       = getVal('company') || '—';
+    document.getElementById('pName').textContent          = getVal('name') || '—';
+    document.getElementById('pDateFrom').textContent      = getVal('dateFrom') || '—';
+    document.getElementById('pDateTo').textContent        = getVal('dateTo') || '—';
+    document.getElementById('pJobDescription').textContent = getVal('jobDescription') || '—';
     document.getElementById('pTimeCompleted').textContent  = getVal('timeCompleted') || '_______________';
     ['precautions','equipment','areaPrep','surfaces','fireWatch','ppe','ventilation'].forEach(id => {
       setCheck(id, isChecked(id));
@@ -293,20 +358,24 @@ LOCATION: ${locEl ? locEl.value : 'Not selected'}
 GENERAL INFO
 Company: ${getVal('company') || 'N/A'}
 Name: ${getVal('name') || 'N/A'}
-Date: ${getVal('date') || 'N/A'}
+Valid Dates: ${getVal('dateFrom') || 'N/A'} to ${getVal('dateTo') || 'N/A'}
 Job Description: ${getVal('jobDescription') || 'N/A'}
 
 SAFETY CHECKLIST
-[${isChecked('precautions')?'X':' '}] Sprinklers/extinguishers ready
-[${'isChecked('equipment')?'X':' '}] Equipment in good condition
-[p${isChecked('areaPrep')?'X':' '}] Area prep (20ft flammables removed)
-[p${isChecked('surfaces')?'X':' '}] Welding pads/blankets used
+[${isChecked('precautions') ? 'X' : ' '}] Sprinklers/extinguishers ready
+[${isChecked('equipment') ? 'X' : ' '}] Equipment in good condition
+[${isChecked('areaPrep') ? 'X' : ' '}] Area prep (20ft flammables removed)
+[${isChecked('surfaces') ? 'X' : ' '}] Welding pads/blankets used
 
 MONITORING & PPE
-[${isChecked('fireWatch')?'X':' '}] Fire watch during and 2 hrs after
-[${'isChecked('ppe')?'X':' '}] Proper PPE used
-[${isChecked('ventilation')?'X':' '}] Good ventilation
-Time completed by: ${getVal('timeCompleted') || 'N/A'}`;
+[${isChecked('fireWatch') ? 'X' : ' '}] Fire watch during and 2 hrs after
+[${isChecked('ppe') ? 'X' : ' '}] Proper PPE used
+[${isChecked('ventilation') ? 'X' : ' '}] Good ventilation
+Time completed by: ${getVal('timeCompleted') || 'N/A'}
+
+SIGNATURES
+Person requesting permit: ________________________  Date: ______________
+Safety Officer / Supervisor: ____________________  Date: ______________`;
     navigator.clipboard.writeText(text)
       .then(() => showMessage('Report copied to clipboard!'))
       .catch(() => showMessage('Could not copy. Try again.'));
@@ -317,7 +386,7 @@ Time completed by: ${getVal('timeCompleted') || 'N/A'}`;
       return;
     }
     const element = document.getElementById('reportContent');
-    const dateVal = getVal('date');
+    const dateVal = getVal('dateFrom');
     const filename = 'hot-work-permit' + (dateVal ? '-' + dateVal : '') + '.pdf';
     showMessage('Generating PDF...');
     html2pdf().set({
